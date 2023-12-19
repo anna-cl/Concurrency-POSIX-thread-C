@@ -79,9 +79,29 @@ void* print1s(void* arg){
 //4.pthread example 3
 //function pointer:
 void *start_thred(void* args){
-    printf("Hello from CHILD\n");
+    printf("Hello from CHILD1\n");
     pthread_exit(NULL);
 }
+
+//5.passing a single argument to threads
+// https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/ThreadArgs.html
+void *child_thread2(void* args){
+
+    /* POTENTIALLY DANGEROUS TIMING -- also leads to Seg fault 11 */
+    // int* argPtr = (int*) args;
+    // int arg = *argPtr;
+
+
+    /* Safe whenever size of int <= size of pointer (which is
+     usually true) */
+     int arg = (int) args; // pass-by-value
+
+
+    /* Print the local copy of the argument */
+    printf("Local argument: %d\n", arg);
+    pthread_exit(NULL);
+}
+
 
 
 int main(int argc, char** argv){
@@ -115,19 +135,47 @@ int main(int argc, char** argv){
     /* Wait for threads to finish */
 
     //4.pthread example 3
-    //int pthread_create (pthread_t *thread, const pthread_attr_t *attr, 
-        // void *(*start_routine)(void*), void *arg);
-        // Create a new thread starting with at the start_routine function.
     pthread_t child_thread;
-    
-    // requests the allocation of resources for a new thread and returns 0 if the request is successful.
-    assert (pthread_create(&child_thread, NULL, start_thred, NULL)==0);
+    pthread_t child_threads[10];
+
+
+    //int pthread_create (pthread_t *thread, const pthread_attr_t *attr, 
+    // void *(*start_routine)(void*), void *arg);
+        // Create a new thread starting with at the start_routine function.
+        // requests the allocation of resources for a new thread and returns 0 if the request is successful.
+    assert (pthread_create(&child_thread, NULL, start_thred, NULL)==0);//--------
 
     /* Wait for the child to finish, then exit */
     // int pthread_join (pthread_t thread, void **value_ptr);
         // wait for the thread running start_thread() to call pthread_exit()
-    pthread_join(child_thread, NULL);
+    pthread_join(child_thread, NULL);//--------
     //void pthread_exit (void *value_ptr);
         // Exit from the current thread.
-    pthread_exit(NULL);
+    // pthread_exit(NULL);//--------
+
+    //5.passing a single argument to threads
+    printf("\nChild_thread2 function\n");
+    for (int i = 1; i <= 10; i++)
+    {
+        /* BAD CODE - DON'T DO THIS */
+        /* What value is actually passed to the thread? */
+        // The key problem is that thread creation and execution is asynchronous. That means that it is impossible to predict when each of the new threads start running. 
+        // One possible timing is that all 10 threads are created first, leading to i storing the value 11. 
+        // At that point, each of the threads dereference their respective argptr variable and all get the same value of 11.
+
+        // assert (pthread_create (&child[i], NULL, child_thread, &i) == 0);
+
+
+        /* FIXED VERSION */
+        /* ints are passed by value, so a COPY gets passed to each call */
+        // Each thread should be given a separate value, rather than a shared address
+        // One common solution to this problem is to cast numeric values as pointers. 
+        // That is, the int i variable gets cast as a (void*) argument in the call to pthread_create(). 
+        // Then, the void* argument to child_thread() casts the argument back to a int instance.
+        printf("%d --> ", i);
+        assert(pthread_create(&child_threads[i], NULL, child_thread2, (void*)i)==0); //pass-by-value
+    }
+    
+   
+
 }
