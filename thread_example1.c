@@ -116,10 +116,10 @@ void* printHello(void* data){
     
     //thread sleeps for 1 second and then resume execution 
     //(we are trying to make this thread finish after the main thread)
-    sleep(3); 
+    // sleep(3); 
     
     printf("-->Hello from new thread %u - received data: %d\n", pthread_self(),  my_data);
-    pthread_exit(NULL);/* terminate the thread, the equivalent of exit for processes */
+    // pthread_exit(NULL);/* terminate the thread, the equivalent of exit for processes */
 }
 
 
@@ -211,10 +211,19 @@ int main(int argc, char** argv){
         printf("\nERROR: return code from pthread_create is %d\n", create_return_value);
         exit(1);//terminate entire program at here
     }
-    printf("-->I am thread id %u. Created new thread(%u) ... \n", test_id, pthread_id);//format specifier %u (unsigned) to print out the thread identifier
 
-    pthread_exit(NULL);
+    printf("-->I am thread id %u.\n", test_id);
+    sleep(3);
+    printf("-->Created new thread(%u) ... \n", pthread_id);//format specifier %u (unsigned) to print out the thread identifier
 
-   
+    //IMPORTANT: It is necessary to use pthread_exit at the end of the main program. 
+    //Otherwise, when it exits, all running threads will be killed.
+    pthread_exit(NULL); 
+    //1.try: comment out this when sleep(3) added in printHello(), the sleeping thread printHello() will not print
+    //2.try: uncomment this pthread_exit(NULL); and comment out pthread_exit(NULL); in printHello(),
+    // Also add the sleep call to the main routine, just before the second printf call, 
+    //and remove it from the PrintHello routine (so now the main thread finishes last)
+
+    
 
 }
