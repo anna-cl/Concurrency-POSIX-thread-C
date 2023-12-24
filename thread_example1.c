@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <assert.h>
+#include <unistd.h> //unsigned sleep(unsigned seconds);
 
 
 // ==== Bug Warning! ====
@@ -54,7 +55,7 @@ void* print1s(void* arg){
 // How to use casting to work between the generic and the specific again here
 // How to wait for a thread to complete, and get its return value
 // void* func(void* x){
-//     int xi = (int)x;//???
+//     int xi = (int)x;//pthread needs to pass-by-value, not pass-by-reference
 //     // int xi = *(int*)x;
 //     printf("Inside thread: x= %d\n", xi);
 
@@ -102,6 +103,25 @@ void *child_thread2(void* args){
     pthread_exit(NULL);
 }
 
+//6.Thread id, sleep()
+// $ gcc thread_example2.c  -o example2 -lpthread
+// http://www.csc.villanova.edu/~mdamian/threads/posixthreads.html
+// https://www.youtube.com/watch?v=KEiur5aZnIM&t=9s
+
+void* printHello(void* data){
+    int my_data = (int)data; /* data received by thread */
+
+    //A thread can get its own thread id by calling pthread_self(), which returns the thread id
+    pthread_detach(pthread_self()); //????
+    
+    //thread sleeps for 1 second and then resume execution 
+    //(we are trying to make this thread finish after the main thread)
+    sleep(3); 
+    
+    printf("-->Hello from new thread %u - received data: %d\n", pthread_self(),  my_data);
+    pthread_exit(NULL);/* terminate the thread, the equivalent of exit for processes */
+}
+
 
 
 int main(int argc, char** argv){
@@ -135,28 +155,28 @@ int main(int argc, char** argv){
     /* Wait for threads to finish */
 
     //4.pthread example 3
-    pthread_t child_thread;
-    pthread_t child_threads[10];
+    // pthread_t child_thread;
+    // pthread_t child_threads[10];
 
 
     //int pthread_create (pthread_t *thread, const pthread_attr_t *attr, 
     // void *(*start_routine)(void*), void *arg);
         // Create a new thread starting with at the start_routine function.
         // requests the allocation of resources for a new thread and returns 0 if the request is successful.
-    assert (pthread_create(&child_thread, NULL, start_thred, NULL)==0);//--------
+    // assert (pthread_create(&child_thread, NULL, start_thred, NULL)==0);//--------
 
     /* Wait for the child to finish, then exit */
     // int pthread_join (pthread_t thread, void **value_ptr);
         // wait for the thread running start_thread() to call pthread_exit()
-    pthread_join(child_thread, NULL);//--------
+    // pthread_join(child_thread, NULL);//--------
     //void pthread_exit (void *value_ptr);
         // Exit from the current thread.
     // pthread_exit(NULL);//--------
 
     //5.passing a single argument to threads
-    printf("\nChild_thread2 function\n");
-    for (int i = 1; i <= 10; i++)
-    {
+    // printf("\nChild_thread2 function\n");
+    // for (int i = 1; i <= 10; i++)//--------
+    // {
         /* BAD CODE - DON'T DO THIS */
         /* What value is actually passed to the thread? */
         // The key problem is that thread creation and execution is asynchronous. That means that it is impossible to predict when each of the new threads start running. 
@@ -165,17 +185,36 @@ int main(int argc, char** argv){
 
         // assert (pthread_create (&child[i], NULL, child_thread, &i) == 0);
 
-
         /* FIXED VERSION */
         /* ints are passed by value, so a COPY gets passed to each call */
         // Each thread should be given a separate value, rather than a shared address
         // One common solution to this problem is to cast numeric values as pointers. 
         // That is, the int i variable gets cast as a (void*) argument in the call to pthread_create(). 
         // Then, the void* argument to child_thread() casts the argument back to a int instance.
-        printf("%d --> ", i);
-        assert(pthread_create(&child_threads[i], NULL, child_thread2, (void*)i)==0); //pass-by-value
-    }
+        // printf("%d --> ", i); //--------
+        // assert(pthread_create(&child_threads[i], NULL, child_thread2, (void*)i)==0); //pass-by-value //--------
+    // }
     
+
+    //6.Thread id, sleep()
+    pthread_t test_id;
+    test_id = pthread_self();
+
+    int create_return_value;
+    pthread_t pthread_id; /* thread's ID (just an integer-memory address)*/
+    int data = 100; /* data passed to the new thread */
+
+    create_return_value = pthread_create(&pthread_id, NULL, printHello, (void*)data);
+
+    if (create_return_value)
+    {
+        printf("\nERROR: return code from pthread_create is %d\n", create_return_value);
+        exit(1);//terminate entire program at here
+    }
+    printf("-->I am thread id %u. Created new thread(%u) ... \n", test_id, pthread_id);//format specifier %u (unsigned) to print out the thread identifier
+
+    pthread_exit(NULL);
+
    
 
 }
