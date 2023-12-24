@@ -103,23 +103,37 @@ void *child_thread2(void* args){
     pthread_exit(NULL);
 }
 
-//6.Thread id, sleep()
+//6.Thread id, sleep(), pthread_exit(), pthread_join()
 // $ gcc thread_example2.c  -o example2 -lpthread
 // http://www.csc.villanova.edu/~mdamian/threads/posixthreads.html
 // https://www.youtube.com/watch?v=KEiur5aZnIM&t=9s
 
 void* printHello(void* data){
-    int my_data = (int)data; /* data received by thread */
+    //6.1 ===========
+    int my_data = (int)data; /* data received by thread */ //-------
 
-    //A thread can get its own thread id by calling pthread_self(), which returns the thread id
-    pthread_detach(pthread_self()); //????
+    //At any point in time, a thread is either joinable or detached (default state is joinable). 
+    //Joinable threads must be reaped or killed by other threads (using pthread_join) in order to free memory resources. 
+    //Detached threads cannot be reaped or killed by other threads, and resources are automatically reaped on termination. 
+    //So unless threads need to synchronize among themselves, it is better to call
+    // pthread_detach(pthread_self()); instead of pthread_join.
+    pthread_detach(pthread_self()); //-------
     
     //thread sleeps for 1 second and then resume execution 
     //(we are trying to make this thread finish after the main thread)
-    // sleep(3); 
+    // sleep(3); //-------
     
-    printf("-->Hello from new thread %u - received data: %d\n", pthread_self(),  my_data);
-    // pthread_exit(NULL);/* terminate the thread, the equivalent of exit for processes */
+    printf("6.1-->Hello from new thread %u - received data: %d\n", pthread_self(),  my_data);//-------
+
+    //6.2 ===========
+    //The pthread_join() function for threads is the equivalent of wait for processes. 
+    //A call to pthread_join blocks the calling thread until the thread with identifier equal to the first argument terminates.
+    pthread_t tid = (pthread_t)data;
+    pthread_join(tid, NULL); /* wait for thread tid */
+    printf("6.2-->Hello from new thread %u - received data: %d\n", pthread_self(), data);
+
+    pthread_exit(NULL);/* terminate the thread, the equivalent of exit for processes */
+
 }
 
 
@@ -138,7 +152,7 @@ int main(int argc, char** argv){
 
     
     //2. pthread example 2
-    // pthread_t th; //the thread to wait for
+    // pthread_t th; //thread id, the thread to wait for
     // pthread_create(&th, NULL, func, (void*)100);
 
     // void* ret_from_thread;//status;  the location where the exit status of the joined thread is stored. 
@@ -196,13 +210,14 @@ int main(int argc, char** argv){
     // }
     
 
-    //6.Thread id, sleep()
+    //6.Thread id, sleep(), pthread_exit(), pthread_join()
     pthread_t test_id;
+    //A thread can get its own thread id by calling pthread_self(), which returns the thread id
     test_id = pthread_self();
 
     int create_return_value;
     pthread_t pthread_id; /* thread's ID (just an integer-memory address)*/
-    int data = 100; /* data passed to the new thread */
+    int data = 5555; /* data passed to the new thread */
 
     create_return_value = pthread_create(&pthread_id, NULL, printHello, (void*)data);
 
@@ -219,8 +234,8 @@ int main(int argc, char** argv){
     //IMPORTANT: It is necessary to use pthread_exit at the end of the main program. 
     //Otherwise, when it exits, all running threads will be killed.
     pthread_exit(NULL); 
-    //1.try: comment out this when sleep(3) added in printHello(), the sleeping thread printHello() will not print
-    //2.try: uncomment this pthread_exit(NULL); and comment out pthread_exit(NULL); in printHello(),
+    //6.1.1try: comment out this when sleep(3) added in printHello(), the sleeping thread printHello() will not print
+    //6.1.2try: uncomment this pthread_exit(NULL); and comment out pthread_exit(NULL); in printHello(),
     // Also add the sleep call to the main routine, just before the second printf call, 
     //and remove it from the PrintHello routine (so now the main thread finishes last)
 
