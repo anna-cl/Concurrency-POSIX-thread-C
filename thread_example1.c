@@ -136,6 +136,39 @@ void* printHello(void* data){
 
 }
 
+//7.create N threads:  http://www.csc.villanova.edu/~mdamian/threads/posixthreads.html
+// Write a program will create a number N of threads specified in the command line, 
+// each of which prints out a hello message and its own thread ID. 
+// To see how the execution of the threads interleaves, make the main thread sleep for 1 second for every 4 or 5 threads it creates. 
+// The output of your code should be similar to:
+/*       
+       I am thread 1. Created new thread (4) in iteration 0...
+       Hello from thread 4 - I was created in iteration 0
+       I am thread 1. Created new thread (6) in iteration 1...
+       I am thread 1. Created new thread (7) in iteration 2...
+       I am thread 1. Created new thread (8) in iteration 3...
+       I am thread 1. Created new thread (9) in iteration 4...
+       I am thread 1. Created new thread (10) in iteration 5...
+       Hello from thread 6 - I was created in iteration 1
+       Hello from thread 7 - I was created in iteration 2
+       Hello from thread 8 - I was created in iteration 3
+       Hello from thread 9 - I was created in iteration 4
+       Hello from thread 10 - I was created in iteration 5
+       I am thread 1. Created new thread (11) in iteration 6...
+       I am thread 1. Created new thread (12) in iteration 7...
+       Hello from thread 11 - I was created in iteration 6
+       Hello from thread 12 - I was created in iteration 7
+*/
+    void* printEachthreads(void* _data){
+        // int data = (int)_data;
+
+        pthread_t tid = (pthread_t) _data;
+        pthread_join(&tid, NULL);
+
+        printf("Hello from thread %u - I was created in iteration ", tid);
+
+        pthread_exit(NULL); 
+    }
 
 
 int main(int argc, char** argv){
@@ -211,34 +244,52 @@ int main(int argc, char** argv){
     
 
     //6.Thread id, sleep(), pthread_exit(), pthread_join()
-    pthread_t test_id;
-    //A thread can get its own thread id by calling pthread_self(), which returns the thread id
-    test_id = pthread_self();
+    // pthread_t test_id;
+    // //A thread can get its own thread id by calling pthread_self(), which returns the thread id
+    // test_id = pthread_self();
 
-    int create_return_value;
-    pthread_t pthread_id; /* thread's ID (just an integer-memory address)*/
-    int data = 5555; /* data passed to the new thread */
+    // int create_return_value;
+    // pthread_t pthread_id; /* thread's ID (just an integer-memory address)*/
+    // int data = 5555; /* data passed to the new thread */
 
-    create_return_value = pthread_create(&pthread_id, NULL, printHello, (void*)data);
+    // create_return_value = pthread_create(&pthread_id, NULL, printHello, (void*)data);
 
-    if (create_return_value)
-    {
-        printf("\nERROR: return code from pthread_create is %d\n", create_return_value);
-        exit(1);//terminate entire program at here
+    // if (create_return_value)
+    // {
+    //     printf("\nERROR: return code from pthread_create is %d\n", create_return_value);
+    //     exit(1);//terminate entire program at here
+    // }
+
+    // printf("-->I am thread id %u.\n", test_id);
+    // sleep(3);
+    // printf("-->Created new thread(%u) ... \n", pthread_id);//format specifier %u (unsigned) to print out the thread identifier
+
+    // //IMPORTANT: It is necessary to use pthread_exit at the end of the main program. 
+    // //Otherwise, when it exits, all running threads will be killed.
+    // pthread_exit(NULL); //------------
+    // //6.1.1try: comment out this when sleep(3) added in printHello(), the sleeping thread printHello() will not print
+    // //6.1.2try: uncomment this pthread_exit(NULL); and comment out pthread_exit(NULL); in printHello(),
+    // // Also add the sleep call to the main routine, just before the second printf call, 
+    // //and remove it from the PrintHello routine (so now the main thread finishes last)
+
+
+    //7.printNthreads
+    if(argc == 2){
+        pthread_t test_thread;
+
+        int nThreads = atoi(argv[1]);
+        printf("hello %d\n", nThreads);
+
+        for (int i = 0; i < nThreads; i++)
+        {
+            pthread_t thread_id;
+            pthread_create(thread_id, NULL, printEachthreads, (void*)thread_id);
+            printf("I am thread %u Created new thread (%u) in iteration %d...\n", test_thread, thread_id, i);
+        } 
+    }else{
+        printf("Argc: %d\n", argc);
     }
 
-    printf("-->I am thread id %u.\n", test_id);
-    sleep(3);
-    printf("-->Created new thread(%u) ... \n", pthread_id);//format specifier %u (unsigned) to print out the thread identifier
-
-    //IMPORTANT: It is necessary to use pthread_exit at the end of the main program. 
-    //Otherwise, when it exits, all running threads will be killed.
     pthread_exit(NULL); 
-    //6.1.1try: comment out this when sleep(3) added in printHello(), the sleeping thread printHello() will not print
-    //6.1.2try: uncomment this pthread_exit(NULL); and comment out pthread_exit(NULL); in printHello(),
-    // Also add the sleep call to the main routine, just before the second printf call, 
-    //and remove it from the PrintHello routine (so now the main thread finishes last)
-
-    
 
 }
