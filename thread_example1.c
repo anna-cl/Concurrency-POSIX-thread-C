@@ -137,7 +137,7 @@ void* printHello(void* data){
 }
 
 //7.create N threads:  http://www.csc.villanova.edu/~mdamian/threads/posixthreads.html
-// Write a program will create a number N of threads specified in the command line, 
+// Create a number N threads specified in the command line, 
 // each of which prints out a hello message and its own thread ID. 
 // To see how the execution of the threads interleaves, make the main thread sleep for 1 second for every 4 or 5 threads it creates. 
 // The output of your code should be similar to:
@@ -160,12 +160,13 @@ void* printHello(void* data){
        Hello from thread 12 - I was created in iteration 7
 */
     void* printEachthreads(void* _data){
-        // int data = (int)_data;
+        int i = (int)_data;
 
         pthread_t tid = (pthread_t) _data;
-        pthread_join(&tid, NULL);
+        pthread_join(tid, NULL); //no join in solution, why?? what purpose of join()?
 
-        printf("Hello from thread %u - I was created in iteration ", tid);
+        printf("Hey from thread %u - I was created in iteration %d!\n", tid, i);
+        // printf("Hello from thread %u, %u - I was created in iteration %d!\n", (int)pthread_self(), tid, i);
 
         pthread_exit(NULL); 
     }
@@ -239,7 +240,7 @@ int main(int argc, char** argv){
         // That is, the int i variable gets cast as a (void*) argument in the call to pthread_create(). 
         // Then, the void* argument to child_thread() casts the argument back to a int instance.
         // printf("%d --> ", i); //--------
-        // assert(pthread_create(&child_threads[i], NULL, child_thread2, (void*)i)==0); //pass-by-value //--------
+        // assert(pthread_create(&child_threads[i], NULL, child_thread2, (void*)i) == 0); //pass-by-value //--------
     // }
     
 
@@ -274,18 +275,31 @@ int main(int argc, char** argv){
 
 
     //7.printNthreads
+    # define MAX_THREADS 50
+    pthread_t thread_ids[MAX_THREADS];
+    pthread_t test_thread; //just a pthread type variable, no pthread created
     if(argc == 2){
-        pthread_t test_thread;
+        int nThreads = atoi(argv[1]); //number of threads
 
-        int nThreads = atoi(argv[1]);
-        printf("hello %d\n", nThreads);
+        if(nThreads <= MAX_THREADS){
+            for (int i = 0; i < nThreads; i++)
+            {
+                pthread_create(&(thread_ids[i]), NULL, printEachthreads, (void*)i);
+                printf("\n-->Main: First pthread variable id %u(not pthread created). --> Second pthread variable  %u(not pthread created)."
+                    "Created new thread (%u) in iteration %d...\n", (int)test_thread, (int)pthread_self(), (int)thread_ids[i], i);
 
-        for (int i = 0; i < nThreads; i++)
-        {
-            pthread_t thread_id;
-            pthread_create(thread_id, NULL, printEachthreads, (void*)thread_id);
-            printf("I am thread %u Created new thread (%u) in iteration %d...\n", test_thread, thread_id, i);
-        } 
+                if (i%5 == 0)
+                {
+                    sleep(2);
+                }
+                
+            } 
+
+        }else{
+            printf("Max threads are 50.\n");
+            exit(1);
+        }
+
     }else{
         printf("Argc: %d\n", argc);
     }
