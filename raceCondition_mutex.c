@@ -49,6 +49,19 @@ void* squareRewrite(void* _x){
     return NULL;
 }
 
+//1. and 2.
+// let's say the first two threads are interleaved over time, giving us something like this:
+
+// Thread 1             // Thread 2
+// int temp1 = accum;      int temp2 = accum;          // temp1 = temp2 = 0
+//                         temp2 += 2 * 2;             // temp2 = 4
+// temp1 += 1 * 1;                                     // temp1 = 1
+//                         accum = temp1;              // accum = 1
+// accum = temp2;                                      // accum = 4
+
+// We end up with accum as 4, instead of the correct 5.
+
+
 
 int main(int argc, char** argv){
 
