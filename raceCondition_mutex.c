@@ -1,19 +1,52 @@
+//*** Race condition ***
+
+//Defination: 
+//A race condition occurs when two or more processes or threads access shared data(e.g. global variables) or resources concurrently 
+//and the outcome depends on the order in which they execute. 
+//In other words, the result of the operation depends on the timing of the execution, 
+//which can lead to unpredictable behavior and data corruption.
+
+
 //https://www.classes.cs.uchicago.edu/archive/2018/spring/12300-1/lab6.html
-//* Race condition *
+
+//1.
+//$ gcc raceCondition_mutex.c -Wno-int-to-void-pointer-cast -o race -lpthread
+//$ for i in {1..49}; do ./race.out; done   //run this. Chances are it spits out 2870, which is the correct answer.
+//$ for i in {1..1000}; do ./race; done|sort|uniq -c       
+//--- definitely see plenty of incorrect answers, 
+//even though most of the time it gets it right. 
+//This is because of something called a race condition. When the compiler processes accum += x * x;, 
+//reading the current value of accum and setting the updated value is not an atomic (meaning indivisible不可分割的) event. 
+//Let's re-write square to capture this in 2.
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
 #define MAX_THREADS 20
 
+//1. Will cause race condition, bad
 //global variable - accessible, shared, modifiable by all threads
 int accum = 0;
 
-
+//1.
 void* square(void* _x){
     int x = (int) _x;
     accum += x*x;
 
     return NULL; /* nothing to return, prevent warning */
+}
+
+//2.Try to rewrite square() to fix race condition:
+//this second version looks different, the fact is that when you compile the earlier version, 
+//it needs to do these intermediate steps as well. There is no practical difference between these versions, 
+//other than that this new version makes explicit the steps that were implicit, but still present, in the prior version.
+void* squareRewrite(void* _x){
+    int temp = accum;
+    temp += (int)_x * (int)_x;
+    accum = temp;
+
+    return NULL;
 }
 
 
@@ -23,7 +56,9 @@ int main(int argc, char** argv){
 
     for (int i = 0; i < MAX_THREADS; i++)
     {
-        pthread_create(&threadIDs[i], NULL, square, (void*)(i+1));        
+        // pthread_create(&threadIDs[i], NULL, square, (void*)(i+1));        
+        pthread_create(&threadIDs[i], NULL, squareRewrite, (void*)(i+1));        
+
         printf("%d.thread created \n", i);
     }
     
@@ -31,8 +66,11 @@ int main(int argc, char** argv){
     {
         void* result;
         printf("%d.thread joining: \n", i);
-        //** Important: call join() on all our threads, which is a blocking operation that waits for the thread to finish, 
+        //** Important**
+        //1. call join() on all our threads, which is a blocking operation that waits for the thread to finish, 
         //before continuing the execution. Without join() to wait, the some threads will be skipped!
+        //2. This is important to do before we print accum, since otherwise our threads might not be done yet. 
+        //You should always join your threads before leaving main
         pthread_join(threadIDs[i], &result); //&result - address of a void pointer
     }
 
