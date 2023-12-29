@@ -163,7 +163,8 @@ void* printHello(void* data){
         int i = (int)_data;
 
         pthread_t tid = (pthread_t) _data;
-        pthread_join(tid, NULL); //no join in solution, why?? what purpose of join()?
+        pthread_join(tid, NULL); //no join in solution, but it's better to have join() because it waits for 
+        //each thread to execute and finish.
 
         printf("Hey from thread %u - I was created in iteration %d!\n", tid, i);
         // printf("Hello from thread %u, %u - I was created in iteration %d!\n", (int)pthread_self(), tid, i);
