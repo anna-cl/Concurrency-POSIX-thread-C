@@ -49,7 +49,7 @@ void* squareRewrite(void* _x){
     return NULL;
 }
 
-//1. and 2.
+//more: 1. and 2.
 // let's say the first two threads are interleaved over time, giving us something like this:
 
 // Thread 1             // Thread 2
@@ -62,6 +62,27 @@ void* squareRewrite(void* _x){
 // We end up with accum as 4, instead of the correct 5.
 
 
+//3.** Mutex ** - Solution for race condition:
+//A mutex (mutual exlusion) allows us to encapsulate blocks of code that should only be executed in one thread at a time. 
+//Put another way, it allows us to glue together a sequence of operations that would otherwise not be atomic, 
+//so that they are executed atomically. 
+//Put yet another way, it allows us to be certain that the intermediate state during a sequence of operations will not be observed 
+//or tampered with by another thread. So we keep the main function the same and change function pointer.
+
+//add another global vairable:
+pthread_mutex_t accum_mutext = PTHREAD_MUTEX_INITIALIZER;
+
+void* squareMutex(void* _x){
+    int temp = (int)_x * (int)_x;;
+
+    pthread_mutex_lock(&accum_mutext);
+    accum += temp;
+    pthread_mutex_unlock(&accum_mutext);
+
+    return NULL;
+}
+
+
 
 int main(int argc, char** argv){
 
@@ -70,7 +91,8 @@ int main(int argc, char** argv){
     for (int i = 0; i < MAX_THREADS; i++)
     {
         // pthread_create(&threadIDs[i], NULL, square, (void*)(i+1));        
-        pthread_create(&threadIDs[i], NULL, squareRewrite, (void*)(i+1));        
+        // pthread_create(&threadIDs[i], NULL, squareRewrite, (void*)(i+1));
+        pthread_create(&threadIDs[i], NULL, squareMutex, (void*)(i+1));
 
         printf("%d.thread created \n", i);
     }
