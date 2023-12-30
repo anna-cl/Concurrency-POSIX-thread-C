@@ -72,7 +72,15 @@ void* squareRewrite(void* _x){
 //add another global vairable:
 pthread_mutex_t accum_mutext = PTHREAD_MUTEX_INITIALIZER;
 
+//The first thread that calls pthread_mutex_lock() gets the lock. 
+//During this time, all other threads that call pthread_mutex_lock(), will simply halt, 
+//waiting at that line for the mutex to be unlocked. 
+//Once it becomes available, one of the waiting threads will be allowed to lock it next, 
+//while the other threads continue to wait their turn. 
 void* squareMutex(void* _x){
+    //It is important to introduce the variable temp, since we want the x * x calculations to be outside the lock-unlock block, 
+    //otherwise we would be hogging the lock while we're running calculations that do not also require mutual exclusion 
+    //(because each thread can safely square its own value independently).
     int temp = (int)_x * (int)_x;;
 
     pthread_mutex_lock(&accum_mutext);
