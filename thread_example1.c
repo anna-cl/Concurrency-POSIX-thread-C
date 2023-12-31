@@ -182,7 +182,9 @@ int main(int argc, char** argv){
 
     // void* result;
 
-    // pthread_join(thread1, &result); //make sure thread1 is finished before entire program ends, so is should be placed at the end of main()
+    //first join() make sure thread1 is finished before entire program ends, 
+    //so is should be placed before ending main():
+    // pthread_join(thread1, &result);
     // pthread_join(thread2, &result);
 
     

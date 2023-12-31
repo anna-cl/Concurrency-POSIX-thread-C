@@ -1,4 +1,5 @@
 //---------- Continues from raceCondition_mutex.c ----------
+//reference: https://www.classes.cs.uchicago.edu/archive/2018/spring/12300-1/lab6.html
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -12,8 +13,8 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 int value = 100;
 bool notified = false; //notify next thread when previous thread is finished
 
-//4.this is for next thread:
-void* squareReporter(void* unused){
+//4. for next thread:
+void* reporter(void* unused){
     pthread_mutex_lock(&mut);
     //once notified is true, the loop stops; next thread will start its mutex work.
     while (!notified)
@@ -23,10 +24,11 @@ void* squareReporter(void* unused){
         //it waits for notified True, also it waits for previous thread mutex mut to be unlocked
         pthread_cond_wait(&cond_var, &mut); 
     }
+
     printf("The value is %d\n", value);
     
     pthread_mutex_unlock(&mut);
-
+    
     return NULL;
 }
 
@@ -44,15 +46,15 @@ void* assigner(void* unused){ //for previous thread
 
 int main(){
 
-        //4.
+    //4.
     pthread_t report, assign;
-    pthread_create(&report, NULL, squareReporter, NULL);
-
+    pthread_create(&report, NULL, reporter, NULL);
+    pthread_create(&assign, NULL, assigner, NULL);
     
     void* unused;
 
-
-
+    pthread_join(report, &unused);
+    pthread_join(assign, &unused);
 
     return 0;
 }
