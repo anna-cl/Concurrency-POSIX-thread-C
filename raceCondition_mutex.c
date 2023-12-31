@@ -116,7 +116,12 @@ void* squareReporter(void* unused){
 void* assigner(void* unused){
     value = 20;
 
+    pthread_mutex_lock(&accum_mutext);
+    notified = true;
+    pthread_cond_signal(&cond_var);
+    pthread_mutex_unlock(&accum_mutext);
 
+    return NULL;
 }
 
 int main(int argc, char** argv){
