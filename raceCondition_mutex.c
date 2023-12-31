@@ -96,12 +96,24 @@ void* squareMutex(void* _x){
 
 //4. add another global variables:
 pthread_cond_t cond_var = PTHREAD_MUTEX_INITIALIZER;
+
+int value = 100;
 bool notified = false; //notify next thread when previous thread is finished
 
 //4.
-void* reporter(void* unused){
+void* squareReporter(void* unused){
+    pthread_mutex_lock(&accum_mutext);
+    while (!notified)
+    {
+        pthread_cond_wait(&cond_var, &accum_mutext);
+    }
+    printf("The value is %d\n", value);
+    pthread_mutex_unlock(&accum_mutext);
 
+    return NULL;
 }
+
+
 
 
 int main(int argc, char** argv){
