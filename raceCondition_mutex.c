@@ -71,7 +71,7 @@ void* squareRewrite(void* _x){
 //or tampered with by another thread. So we keep the main function the same and change function pointer.
 
 //3.add another global vairable:
-pthread_mutex_t accum_mutext = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t accum_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 //3.The first thread that calls pthread_mutex_lock() gets the lock. 
 //During this time, all other threads that call pthread_mutex_lock(), will simply halt, 
@@ -85,50 +85,19 @@ void* squareMutex(void* _x){
     //(because each thread can safely square its own value independently).
     int temp = (int)_x * (int)_x;
 
-    pthread_mutex_lock(&accum_mutext);
+    //** Critical condition **
+    pthread_mutex_lock(&accum_mutex);
     accum += temp;
-    pthread_mutex_unlock(&accum_mutext);
+    pthread_mutex_unlock(&accum_mutex);
 
     return NULL;
 }
 
-//4. ** Boolean(Condition) to notify thread **
-
-//4. add another global variables:
-pthread_cond_t cond_var = PTHREAD_MUTEX_INITIALIZER;
-
-int value = 100;
-bool notified = false; //notify next thread when previous thread is finished
-
-//4.this is for next thread:
-void* squareReporter(void* unused){
-    pthread_mutex_lock(&accum_mutext);
-    //once notified is true, the loop stops; next thread will start its mutex work.
-    while (!notified)
-    {
-        //let CPU to have a short "sleep" 
-        //instead of wasting resource to run this "not-so-meaningful" while loop
-        pthread_cond_wait(&cond_var, &accum_mutext); 
-    }
-    printf("The value is %d\n", value);
-    
-    pthread_mutex_unlock(&accum_mutext);
-
-    return NULL;
-}
-
-void* assigner(void* unused){
-    value = 20;
-
-    pthread_mutex_lock(&accum_mutext);
-    notified = true;
-    pthread_cond_signal(&cond_var);
-    pthread_mutex_unlock(&accum_mutext);
-
-    return NULL;
-}
+//4. ** Boolean(Condition) to notify thread ** in condition_variables.c
 
 int main(int argc, char** argv){
+
+    //1., 2., 3.
 
     pthread_t threadIDs[MAX_THREADS];
 
@@ -161,8 +130,6 @@ int main(int argc, char** argv){
 
     printf("Result, accum = %d\n", accum);
     printf("No thread, sum = %d\n", sumSquare);
-
-
 
 
     return 0;
