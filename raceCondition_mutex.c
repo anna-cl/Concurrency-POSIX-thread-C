@@ -7,7 +7,7 @@
 //which can lead to unpredictable behavior and data corruption.
 
 
-//https://www.classes.cs.uchicago.edu/archive/2018/spring/12300-1/lab6.html
+//Reference: https://www.classes.cs.uchicago.edu/archive/2018/spring/12300-1/lab6.html
 
 //1.
 //$ gcc raceCondition_mutex.c -Wno-int-to-void-pointer-cast -o race -lpthread
@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <pthread.h>
 #define MAX_THREADS 20
 
@@ -69,19 +70,20 @@ void* squareRewrite(void* _x){
 //Put yet another way, it allows us to be certain that the intermediate state during a sequence of operations will not be observed 
 //or tampered with by another thread. So we keep the main function the same and change function pointer.
 
-//add another global vairable:
+//3.add another global vairable:
 pthread_mutex_t accum_mutext = PTHREAD_MUTEX_INITIALIZER;
 
-//The first thread that calls pthread_mutex_lock() gets the lock. 
+//3.The first thread that calls pthread_mutex_lock() gets the lock. 
 //During this time, all other threads that call pthread_mutex_lock(), will simply halt, 
 //waiting at that line for the mutex to be unlocked. 
 //Once it becomes available, one of the waiting threads will be allowed to lock it next, 
 //while the other threads continue to wait their turn. 
+//--> Question: when we use pthread_mutex_lock, what are the possible thread sequence??(interleaved)
 void* squareMutex(void* _x){
-    //It is important to introduce the variable temp, since we want the x * x calculations to be outside the lock-unlock block, 
+    //--> It is important to introduce the variable temp, since we want the x * x calculations to be outside the lock-unlock block, 
     //otherwise we would be hogging the lock while we're running calculations that do not also require mutual exclusion 
     //(because each thread can safely square its own value independently).
-    int temp = (int)_x * (int)_x;;
+    int temp = (int)_x * (int)_x;
 
     pthread_mutex_lock(&accum_mutext);
     accum += temp;
@@ -90,6 +92,16 @@ void* squareMutex(void* _x){
     return NULL;
 }
 
+//4. ** Boolean(Condition) to notify thread **
+
+//4. add another global variables:
+pthread_cond_t cond_var = PTHREAD_MUTEX_INITIALIZER;
+bool notified = false; //notify next thread when previous thread is finished
+
+//4.
+void* reporter(void* unused){
+
+}
 
 
 int main(int argc, char** argv){
