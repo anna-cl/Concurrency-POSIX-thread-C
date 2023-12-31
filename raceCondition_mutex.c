@@ -113,8 +113,11 @@ void* squareReporter(void* unused){
     return NULL;
 }
 
+void* assigner(void* unused){
+    value = 20;
 
 
+}
 
 int main(int argc, char** argv){
 
