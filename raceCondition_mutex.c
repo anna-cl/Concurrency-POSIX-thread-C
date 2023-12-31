@@ -100,14 +100,18 @@ pthread_cond_t cond_var = PTHREAD_MUTEX_INITIALIZER;
 int value = 100;
 bool notified = false; //notify next thread when previous thread is finished
 
-//4.
+//4.this is for next thread:
 void* squareReporter(void* unused){
     pthread_mutex_lock(&accum_mutext);
+    //once notified is true, the loop stops; next thread will start its mutex work.
     while (!notified)
     {
-        pthread_cond_wait(&cond_var, &accum_mutext);
+        //let CPU to have a short "sleep" 
+        //instead of wasting resource to run this "not-so-meaningful" while loop
+        pthread_cond_wait(&cond_var, &accum_mutext); 
     }
     printf("The value is %d\n", value);
+    
     pthread_mutex_unlock(&accum_mutext);
 
     return NULL;
