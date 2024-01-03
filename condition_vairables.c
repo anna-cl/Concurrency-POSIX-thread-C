@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <unistd.h> //unsigned sleep(unsigned seconds);
+
 
 //4. ** Boolean(Condition) to notify next thread **
 
@@ -57,27 +59,59 @@ void* assigner(void* unused){ //for previous thread
 
 //global counter
 int c = 0;
-bool done = false;
+// bool done = false;  //try to fix: comment this out
 
-void* producer(void* _data){
+//try to fix: add condition variables
+pthread_cond_t cond_pro = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mut_pro_con = PTHREAD_MUTEX_INITIALIZER;
+bool notified_con = false;
+
+void* producer(void* unused){
     
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 10; i++)
     {
         /*produce data */
         /*append data to the list*/
+
+        //try to fix:doesn't work
+        pthread_mutex_lock(&mut_pro_con);
+        notified_con = true;
         c++;
+        printf("Producer: %d\n", c);
+        sleep(1);
+        pthread_cond_signal(&cond_pro);
+        pthread_mutex_unlock(&mut_pro_con);
     }
-    done = true;
+    // done = true; //try to fix: comment this out
 
     return NULL;
 }
 
-void* consumer(void* _data){
-    while (done)
+void* consumer(void* unused){
+
+    //try to fix: comment this out
+    // while (!done) 
+    // {
+    //     while (c > 0)
+    //     {
+    //         /* remove data from the list */
+    //         printf("C: %d\n", c);
+    //         c--;
+    //     }
+    // }
+
+    //try to fix: doesn't work
+    while (c>0)
     {
+        pthread_mutex_lock(&mut_pro_con);
+        while (!notified_con){
+            pthread_cond_wait(&cond_pro, &mut_pro_con);
+        }
         c--;
-    }
-    
+        printf("Consumer: %d\n", c);
+        pthread_mutex_unlock(&mut_pro_con);    
+    } 
+
     return NULL;
 }
 
@@ -86,14 +120,24 @@ void* consumer(void* _data){
 int main(){
 
     //4.
-    pthread_t report, assign;
-    pthread_create(&report, NULL, reporter, NULL);
-    pthread_create(&assign, NULL, assigner, NULL);
+    // pthread_t report, assign;
+    // pthread_create(&report, NULL, reporter, NULL);
+    // pthread_create(&assign, NULL, assigner, NULL);
     
     void* unused;
 
-    pthread_join(report, &unused);
-    pthread_join(assign, &unused);
+    // pthread_join(report, &unused);
+    // pthread_join(assign, &unused);
+
+    //5.
+    pthread_t produceID, consumeID;
+    pthread_create(&produceID, NULL, producer, NULL);
+    pthread_create(&consumeID, NULL, consumer, NULL);
+
+    pthread_join(produceID, &unused);
+    pthread_join(consumeID, &unused);
+    
+    printf("Net counter: %d\n", c);
 
     return 0;
 }
