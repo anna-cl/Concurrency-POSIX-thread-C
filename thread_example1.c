@@ -159,18 +159,35 @@ void* printHello(void* data){
        Hello from thread 11 - I was created in iteration 6
        Hello from thread 12 - I was created in iteration 7
 */
-    void* printEachthreads(void* _data){
-        int i = (int)_data;
+void* printEachthreads(void* _data){
+    int i = (int)_data;
 
-        pthread_t tid = (pthread_t) _data;
-        pthread_join(tid, NULL); //no join in solution, but it's better to have join() because it waits for 
-        //each thread to execute and finish.
+    pthread_t tid = (pthread_t) _data;
+    pthread_join(tid, NULL); //no join in solution, but it's better to have join() because it waits for 
+    //each thread to execute and finish.
 
-        printf("Hey from thread %u - I was created in iteration %d!\n", tid, i);
-        // printf("Hello from thread %u, %u - I was created in iteration %d!\n", (int)pthread_self(), tid, i);
+    printf("Hey from thread %u - I was created in iteration %d!\n", tid, i);
+    // printf("Hello from thread %u, %u - I was created in iteration %d!\n", (int)pthread_self(), tid, i);
 
-        pthread_exit(NULL); 
+    pthread_exit(NULL); 
+}
+
+//8. passing struct pointer
+typedef struct {
+    char* string;
+    unsigned int seconds;
+}string_sleep;
+
+void* print_sleep(void* param){
+    string_sleep* ss = (string_sleep*) param;
+    while (true)
+    {
+        printf("String sleep: %s\n", ss->string);
+        fflush(stdout);
+        sleep(ss->seconds);
     }
+    
+}
 
 
 int main(int argc, char** argv){
@@ -278,35 +295,48 @@ int main(int argc, char** argv){
 
 
     //7.printNthreads
-    # define MAX_THREADS 50
-    pthread_t thread_ids[MAX_THREADS];
-    pthread_t test_thread; //just a pthread type variable, no pthread created
-    if(argc == 2){
-        int nThreads = atoi(argv[1]); //number of threads
+    // # define MAX_THREADS 50
+    // pthread_t thread_ids[MAX_THREADS];
+    // pthread_t test_thread; //just a pthread type variable, no pthread created
+    // if(argc == 2){
+    //     int nThreads = atoi(argv[1]); //number of threads
 
-        if(nThreads <= MAX_THREADS){
-            for (int i = 0; i < nThreads; i++)
-            {
-                pthread_create(&(thread_ids[i]), NULL, printEachthreads, (void*)i);
-                printf("\n-->Main: First pthread variable id %u(not pthread created). --> Second pthread variable  %u(not pthread created)."
-                    "Created new thread (%u) in iteration %d...\n", (int)test_thread, (int)pthread_self(), (int)thread_ids[i], i);
+    //     if(nThreads <= MAX_THREADS){
+    //         for (int i = 0; i < nThreads; i++)
+    //         {
+    //             pthread_create(&(thread_ids[i]), NULL, printEachthreads, (void*)i);
+    //             printf("\n-->Main: First pthread variable id %u(not pthread created). --> Second pthread variable  %u(not pthread created)."
+    //                 "Created new thread (%u) in iteration %d...\n", (int)test_thread, (int)pthread_self(), (int)thread_ids[i], i);
 
-                if (i%5 == 0)
-                {
-                    sleep(2);
-                }
+    //             if (i%5 == 0)
+    //             {
+    //                 sleep(2);
+    //             }
                 
-            } 
+    //         } 
 
-        }else{
-            printf("Max threads are 50.\n");
-            exit(1);
-        }
+    //     }else{
+    //         printf("Max threads are 50.\n");
+    //         exit(1);
+    //     }
 
-    }else{
-        printf("Argc: %d\n", argc);
-    }
+    // }else{
+    //     printf("Argc: %d\n", argc);
+    // }
 
-    pthread_exit(NULL); 
+    // pthread_exit(NULL); 
+
+    //8.
+    pthread_t thdID1, thdID2;
+    string_sleep zeros = {"0", 1};
+    string_sleep ones = {"1", 2};
+
+    pthread_create(&thdID1, NULL, print_sleep, &zeros);
+    pthread_create(&thdID2, NULL, print_sleep, &ones);
+
+    void* result;
+
+    pthread_join(thdID1, &result);
+    pthread_join(thdID2, &result);
 
 }
