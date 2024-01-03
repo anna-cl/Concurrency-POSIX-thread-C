@@ -173,6 +173,7 @@ void* printEachthreads(void* _data){
 }
 
 //8. passing struct pointer
+//https://www.classes.cs.uchicago.edu/archive/2018/spring/12300-1/threads2.c.txt
 typedef struct {
     char* string;
     unsigned int seconds;
