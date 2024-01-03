@@ -55,6 +55,32 @@ void* assigner(void* unused){ //for previous thread
 //We can easily check if we correctly end up with 0 in the end. Run the code as it is, 
 //and you will see that the net value can be way off (though you may get lucky some of the time):
 
+//global counter
+int c = 0;
+bool done = false;
+
+void* producer(void* _data){
+    
+    for (int i = 0; i < 100; i++)
+    {
+        /*produce data */
+        /*append data to the list*/
+        c++;
+    }
+    done = true;
+
+    return NULL;
+}
+
+void* consumer(void* _data){
+    while (done)
+    {
+        c--;
+    }
+    
+    return NULL;
+}
+
 
 
 int main(){
