@@ -1,4 +1,6 @@
 //---------- Continues from raceCondition_mutex.c ----------
+// $ gcc -g condition_vairables.c -Wno-int-to-void-pointer-cast -o cond -lpthread
+//$ gdb ./cond
 //reference: https://www.classes.cs.uchicago.edu/archive/2018/spring/12300-1/lab6.html
 #include <stdlib.h>
 #include <stdio.h>
