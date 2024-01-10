@@ -60,7 +60,7 @@ void* consumer(int* id){
     while (j < MAX) //50
     {
         pthread_mutex_wait(&empty, &count_mutex);
-        printf(" Consumed value is: %c by %d\n", buffer[readCount], *id);
+        printf(" Consumed value is:%c: by %d\n", buffer[readCount], *id);
         readCount = (readCount + 1)%BUFLEN;
         fflush(stdout); //flushes the output buffer of a stream
         j++;
@@ -87,6 +87,35 @@ void* consumer(int* id){
 
 
 void* producer(int* id){
+
+    while (i < MAX)
+    {
+        pthread_mutex_lock(&count_mutex);
+        /* wait for the buffer to have space */
+        pthread_cond_wait(&full, &count_mutex);
+        strcpy(buffer, "");
+        buffer[writeCount] = source[writeCount%buflen];
+        printf("%d produced :%c: by :%d:\n", i, buffer[writeCount], *id);
+        fflush(stdout);
+        writeCount = (writeCount+1)%BUFLEN;
+        i++;
+
+        //notify consumer:
+        pthread_cond_signal(&empty);
+
+        pthread_mutex_unlock(&count_mutex);
+
+        if (i < (MAX - 2))
+        {
+            if (rand()%100>=30)
+            {
+                sleep(rand()%3);
+            }
+        }
+        
+    }
+    
+
 
     return NULL;
 }
