@@ -16,3 +16,20 @@
 #define MAX_COUNT 15
 #define NUMTHREADS 3
 
+//should move function headers to .h file
+void* consumer(int* id);
+void* producer(int* id);
+
+char buffer[BUFLEN];
+char source[BUFLEN];
+int readCount = 0;
+int writeCount = 0;
+int buflen;
+pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t nonEmpty = PTHREAD_COND_INITIALIZER;
+pthread_cond_t full = PTHREAD_COND_INITIALIZER;
+
+int main(){
+
+    return 0;
+}
