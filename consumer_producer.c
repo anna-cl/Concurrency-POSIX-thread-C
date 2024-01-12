@@ -1,6 +1,8 @@
 #include <pthread.h>
 #include <stdio.h>
 #include<string.h>
+#include <unistd.h> //unsigned sleep(unsigned seconds);
+#include <stdlib.h>
 
 // https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/ProdCons.html
 // 8.3.1. Producer-Consumer with Unbounded Queue
